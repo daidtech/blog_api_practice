@@ -3,29 +3,10 @@
 # This file demonstrates advanced FactoryBot patterns and configurations
 # for the blog application
 
-# ================== SEQUENCES ==================
-# Use sequences for unique values
-FactoryBot.define do
-  sequence :email do |n|
-    "user#{n}@example.com"
-  end
-
-  sequence :title do |n|
-    "Blog Post Title #{n}"
-  end
-
-  sequence :tag_name do |n|
-    "Tag#{n}"
-  end
-end
-
-# ================== TRAITS ==================
-# Use traits for different variations of factories
-FactoryBot.define do
+# ================== TRAITS FOR USERS ==================
+# Add traits to the existing user factory
+FactoryBot.modify do
   factory :user do
-    name { Faker::Name.name }
-    email { generate(:email) }
-
     trait :with_posts do
       after(:create) do |user|
         create_list(:post, 3, user: user)
@@ -45,12 +26,12 @@ FactoryBot.define do
       end
     end
   end
+end
 
+# ================== TRAITS FOR POSTS ==================
+# Add traits to the existing post factory
+FactoryBot.modify do
   factory :post do
-    title { generate(:title) }
-    content { Faker::Lorem.paragraph }
-    association :user
-
     trait :with_many_comments do
       after(:create) do |post|
         create_list(:comment, 5, post: post)
