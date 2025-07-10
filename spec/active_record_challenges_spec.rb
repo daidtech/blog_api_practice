@@ -1,27 +1,27 @@
 require 'rails_helper'
 
 RSpec.describe "ActiveRecord Query Challenges", type: :model do
-  # Setup test data
-  let!(:user1) { User.create!(name: "John Doe", email: "john@example.com") }
-  let!(:user2) { User.create!(name: "Jane Smith", email: "jane@example.com") }
-  let!(:user3) { User.create!(name: "Bob Wilson", email: "bob@example.com") }
+  # Setup test data using FactoryBot
+  let!(:user1) { create(:john_doe) }
+  let!(:user2) { create(:jane_smith) }
+  let!(:user3) { create(:bob_wilson) }
 
-  let!(:tag1) { Tag.create!(name: "Ruby") }
-  let!(:tag2) { Tag.create!(name: "Rails") }
-  let!(:tag3) { Tag.create!(name: "JavaScript") }
-  let!(:tag4) { Tag.create!(name: "React") }
+  let!(:tag1) { create(:ruby_tag) }
+  let!(:tag2) { create(:rails_tag) }
+  let!(:tag3) { create(:javascript_tag) }
+  let!(:tag4) { create(:react_tag) }
 
-  let!(:post1) { Post.create!(title: "Getting Started with Ruby", content: "Ruby basics tutorial", user: user1) }
-  let!(:post2) { Post.create!(title: "Advanced Rails Techniques", content: "Advanced Rails concepts", user: user1) }
-  let!(:post3) { Post.create!(title: "JavaScript for Beginners", content: "JS fundamentals", user: user2) }
-  let!(:post4) { Post.create!(title: "React Development", content: "React components guide", user: user2) }
-  let!(:post5) { Post.create!(title: "Database Optimization", content: "SQL optimization tips", user: user3) }
+  let!(:post1) { create(:ruby_post, user: user1) }
+  let!(:post2) { create(:rails_post, user: user1) }
+  let!(:post3) { create(:javascript_post, user: user2) }
+  let!(:post4) { create(:react_post, user: user2) }
+  let!(:post5) { create(:database_post, user: user3) }
 
-  let!(:comment1) { Comment.create!(content: "Great tutorial!", post: post1, user: user2) }
-  let!(:comment2) { Comment.create!(content: "Very helpful", post: post1, user: user3) }
-  let!(:comment3) { Comment.create!(content: "Thanks for sharing", post: post2, user: user2) }
-  let!(:comment4) { Comment.create!(content: "Excellent guide", post: post3, user: user1) }
-  let!(:comment5) { Comment.create!(content: "Well written", post: post4, user: user1) }
+  let!(:comment1) { create(:great_tutorial_comment, post: post1, user: user2) }
+  let!(:comment2) { create(:helpful_comment, post: post1, user: user3) }
+  let!(:comment3) { create(:thanks_comment, post: post2, user: user2) }
+  let!(:comment4) { create(:excellent_comment, post: post3, user: user1) }
+  let!(:comment5) { create(:well_written_comment, post: post4, user: user1) }
 
   # Create post-tag associations
   before do
@@ -38,7 +38,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
       # TODO: Write a query to find all users
       # Expected: All 3 users
 
-      result = nil # Replace with your query
+      result = User.all
 
       expect(result.count).to eq(3)
     end

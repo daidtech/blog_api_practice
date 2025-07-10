@@ -4,6 +4,10 @@ require_relative '../config/environment'
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
 
+# Require factory_bot_rails
+require 'factory_bot_rails'
+require 'database_cleaner/active_record'
+
 # Add this custom matcher for query counting
 RSpec::Matchers.define :exceed_query_limit do |expected|
   match do |block|
@@ -27,4 +31,19 @@ RSpec.configure do |config|
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
+
+  # Include Factory Bot syntax methods
+  config.include FactoryBot::Syntax::Methods
+
+  # Configure Database Cleaner for factory bot
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
 end
