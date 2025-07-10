@@ -10,19 +10,25 @@ require 'database_cleaner/active_record'
 
 # Add this custom matcher for query counting
 RSpec::Matchers.define :exceed_query_limit do |expected|
+  supports_block_expectations
+
   match do |block|
-    query_count = 0
+    @query_count = 0
     counter = lambda do |name, started, finished, unique_id, data|
-      query_count += 1 if data[:sql] !~ /^(?:BEGIN|COMMIT|ROLLBACK|RELEASE SAVEPOINT|SAVEPOINT)/
+      @query_count += 1 if data[:sql] !~ /^(?:BEGIN|COMMIT|ROLLBACK|RELEASE SAVEPOINT|SAVEPOINT)/
     end
 
     ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &block)
 
-    query_count > expected
+    @query_count > expected
   end
 
   failure_message do |actual|
     "expected block to not exceed #{expected} queries, but it executed #{@query_count} queries"
+  end
+
+  failure_message_when_negated do |actual|
+    "expected block to exceed #{expected} queries, but it only executed #{@query_count} queries"
   end
 end
 
