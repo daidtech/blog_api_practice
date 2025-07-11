@@ -65,7 +65,7 @@ Comment.count.to_f / Post.count
 User.joins(:posts).joins(:comments).distinct
 
 # Challenge 5.2: Find posts with more than 1 comment
-Post.joins(:comments).group("posts.id").having("COUNT(comments.id) > 1")
+Post.joins(:comments).group("posts.id").having("COUNT(comments.id) > 1").select("posts.*").to_a
 
 # Challenge 5.3: Find users ordered by number of posts (descending)
 User.left_joins(:posts).group(:id).select("users.*, COUNT(posts.id) as post_count").order("post_count DESC")
@@ -82,10 +82,10 @@ Post.joins(:tags).left_joins(:comments).where(comments: { id: nil }).distinct
 User.joins(posts: :comments).group("users.id").select("users.*, COUNT(comments.id) as total_comments").order("total_comments DESC")
 
 # Challenge 6.3: Find tags that are used in multiple posts
-Tag.joins(:posts).group("tags.id").having("COUNT(posts.id) > 1")
+Tag.joins(:posts).group("tags.id").having("COUNT(posts.id) > 1").select("tags.*").to_a
 
 # Challenge 6.4: Find posts with specific tag combinations
-Post.joins(:tags).where(tags: { name: ['Ruby', 'Rails'] }).group("posts.id").having("COUNT(tags.id) = 2")
+Post.joins(:tags).where(tags: { name: ['Ruby', 'Rails'] }).group("posts.id").having("COUNT(tags.id) = 2").select("posts.*").to_a
 
 # ================== LEVEL 7: EXPERT QUERIES ==================
 
@@ -107,13 +107,19 @@ User.left_joins(:posts).left_joins(:comments).group(:id).select("users.*, COUNT(
 Post.joins(:comments).where(comments: { created_at: 1.day.ago..Time.current }).group("posts.id").select("posts.*, COUNT(comments.id) as recent_comment_count").order("recent_comment_count DESC")
 
 # Challenge 8.2: Complex user statistics
-User.left_joins(:posts).left_joins(:comments).left_joins("LEFT JOIN comments post_comments ON posts.id = post_comments.post_id").group(:id).select("
-  users.*,
-  COUNT(DISTINCT posts.id) as posts_count,
-  COUNT(DISTINCT comments.id) as comments_made,
-  COUNT(DISTINCT post_comments.id) as comments_received,
-  CASE WHEN COUNT(DISTINCT posts.id) = 0 THEN 0 ELSE COUNT(DISTINCT post_comments.id)::float / COUNT(DISTINCT posts.id) END as avg_comments_per_post
-")
+# Method 1: Split into multiple queries for clarity
+user_stats = User.left_joins(:posts).left_joins(:comments).group(:id).select("users.*, COUNT(DISTINCT posts.id) as posts_count, COUNT(DISTINCT comments.id) as comments_made")
+comments_received = Comment.joins(:post).joins("JOIN users ON posts.user_id = users.id").group("users.id").count
+result = user_stats.map do |user|
+  received_count = comments_received[user.id] || 0
+  avg_comments = user.posts_count > 0 ? received_count.to_f / user.posts_count : 0
+  user.define_singleton_method(:comments_received) { received_count }
+  user.define_singleton_method(:avg_comments_per_post) { avg_comments }
+  user
+end
+
+# Method 2: Single complex query (alternative approach)
+# User.left_joins(:posts).left_joins(:comments).left_joins("LEFT JOIN comments post_comments ON posts.id = post_comments.post_id").group(:id).select("users.*, COUNT(DISTINCT posts.id) as posts_count, COUNT(DISTINCT comments.id) as comments_made, COUNT(DISTINCT post_comments.id) as comments_received, CASE WHEN COUNT(DISTINCT posts.id) = 0 THEN 0 ELSE COUNT(DISTINCT post_comments.id)::float / COUNT(DISTINCT posts.id) END as avg_comments_per_post")
 
 # Challenge 8.3: Find content creators vs commenters
 users_with_counts = User.left_joins(:posts).left_joins(:comments).group(:id).select("users.*, COUNT(DISTINCT posts.id) as posts_count, COUNT(DISTINCT comments.id) as comments_count")

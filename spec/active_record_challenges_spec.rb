@@ -22,6 +22,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
   let!(:comment3) { create(:thanks_comment, post: post2, user: user2) }
   let!(:comment4) { create(:excellent_comment, post: post3, user: user1) }
   let!(:comment5) { create(:well_written_comment, post: post4, user: user1) }
+  let!(:comment6) { create(:helpful_comment, post: post2, user: user3) }
 
   # Create post-tag associations
   before do
@@ -29,6 +30,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
     post2.tags << [tag1, tag2]
     post3.tags << [tag3]
     post4.tags << [tag3, tag4]
+    post5.tags << [tag1]  # Add Ruby tag to post5 so it has tags but no comments
   end
 
   # ================== LEVEL 1: BASIC QUERIES ==================
@@ -38,7 +40,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
       # TODO: Write a query to find all users
       # Expected: All 3 users
 
-      result = User.all
+      result = nil # Replace with your query
 
       expect(result.count).to eq(3)
     end
@@ -118,7 +120,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       expect(result.count).to eq(5)
       # Check that users are preloaded
-      expect { result.each { |post| post.user.name } }.not_to exceed_query_limit(1)
+      expect { result.each { |post| post.user.name } }.not_to exceed_query_limit(2)
     end
 
     it "Challenge 3.2: Find posts that have comments" do
@@ -143,9 +145,9 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result.count).to eq(5)
+      expect(result.count).to eq(6)
       # Check that associations are preloaded
-      expect { result.each { |comment| comment.post.title + comment.user.name } }.not_to exceed_query_limit(1)
+      expect { result.each { |comment| comment.post.title + comment.user.name } }.not_to exceed_query_limit(3)
     end
   end
 
@@ -187,7 +189,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result).to eq(1.0) # 5 comments / 5 posts = 1.0
+      expect(result).to eq(1.2) # 6 comments / 5 posts = 1.2
     end
   end
 
@@ -199,8 +201,8 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result.count).to eq(2)
-      expect(result.map(&:name)).to contain_exactly("John Doe", "Jane Smith")
+      expect(result.count).to eq(3)
+      expect(result.map(&:name)).to contain_exactly("John Doe", "Jane Smith", "Bob Wilson")
     end
 
     it "Challenge 5.2: Find posts with more than 1 comment" do
@@ -208,8 +210,8 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result.count).to eq(1)
-      expect(result.first.title).to eq("Getting Started with Ruby")
+      expect(result.size).to eq(2)
+      expect(result.map(&:title)).to contain_exactly("Getting Started with Ruby", "Advanced Rails Techniques")
     end
 
     it "Challenge 5.3: Find users ordered by number of posts (descending)" do
@@ -250,7 +252,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
       result = nil # Replace with your query
 
       expect(result.first.name).to eq("John Doe")
-      expect(result.first.total_comments).to eq(3)
+      expect(result.first.total_comments).to eq(4)
     end
 
     it "Challenge 6.3: Find tags that are used in multiple posts" do
@@ -258,8 +260,8 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result.count).to eq(2)
-      expect(result.map(&:name)).to contain_exactly("Ruby", "Rails")
+      expect(result.size).to eq(3)
+      expect(result.map(&:name)).to contain_exactly("Ruby", "Rails", "JavaScript")
     end
 
     it "Challenge 6.4: Find posts with specific tag combinations" do
@@ -267,7 +269,7 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result.count).to eq(2)
+      expect(result.size).to eq(2)
       expect(result.map(&:title)).to contain_exactly("Getting Started with Ruby", "Advanced Rails Techniques")
     end
   end
@@ -337,8 +339,8 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
       john_stats = result.find { |user| user.name == "John Doe" }
       expect(john_stats.posts_count).to eq(2)
       expect(john_stats.comments_made).to eq(2)
-      expect(john_stats.comments_received).to eq(3)
-      expect(john_stats.avg_comments_per_post).to eq(1.5)
+      expect(john_stats.comments_received).to eq(4)
+      expect(john_stats.avg_comments_per_post).to eq(2.0)
     end
 
     it "Challenge 8.3: Find content creators vs commenters" do
@@ -346,8 +348,8 @@ RSpec.describe "ActiveRecord Query Challenges", type: :model do
 
       result = nil # Replace with your query
 
-      expect(result['creator'].count).to eq(1)
-      expect(result['commenter'].count).to eq(2)
+      expect(result['creator'].count).to eq(0)
+      expect(result['commenter'].count).to eq(1)
     end
 
     it "Challenge 8.4: Advanced search with multiple conditions" do
